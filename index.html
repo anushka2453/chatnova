@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ChatNova</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 750px;
+      height: 90vh;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 25px;
+      background: linear-gradient(90deg, #f512a9, #a855f7);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-avatar {
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .header-info h2 {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header-info p {
+      color: rgba(255,255,255,0.8);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Chat area */
+    #chat {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+
+    #chat::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #chat::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+    }
+
+    /* Welcome message */
+    .welcome {
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    .welcome span {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* Messages */
+    .message {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .user .avatar {
+      background: linear-gradient(135deg, #f512a9, #a855f7);
+    }
+
+    .bot .avatar {
+      background: linear-gradient(135deg, #0cddc1, #0284c7);
+    }
+
+    .bubble {
+      max-width: 70%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .user .bubble {
+      background: linear-gradient(135deg, #f512a9, #a855f7);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot .bubble {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255,255,255,0.9);
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Typing indicator */
+    .typing .bubble {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 14px 18px;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .typing-dots span {
+      width: 7px;
+      height: 7px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* Input area */
+    .input-area {
+      padding: 15px 20px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 25px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.07);
+      color: white;
+      font-size: 14px;
+      font-family: 'Poppins', Arial, sans-serif;
+      outline: none;
+      transition: border 0.3s;
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    input:focus {
+      border-color: rgba(245, 18, 169, 0.6);
+      background: rgba(255,255,255,0.1);
+    }
+
+    button {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #f512a9, #a855f7);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">🌷</div>
+    <div class="header-info">
+      <h2>ChatNova</h2>
+      <p><span class="status-dot"></span>Online & Ready</p>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat">
+    <div class="welcome">
+      <span>✨</span>
+      Hey! I'm ChatNova. Ask me anything!
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <input type="text" id="message" placeholder="Ask anything..." />
+    <button onclick="sendMessage()" title="Send">➤</button>
+  </div>
+
+</div>
+
+<script>
+  // Send on Enter key press
+  document.getElementById("message").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  async function sendMessage() {
+    const input = document.getElementById("message");
+    const message = input.value.trim();
+    if (!message) return;
+
+    const chat = document.getElementById("chat");
+
+    // Remove welcome message
+    const welcome = chat.querySelector(".welcome");
+    if (welcome) welcome.remove();
+
+    // User message
+    chat.innerHTML += `
+      <div class="message user">
+        <div class="avatar">👤</div>
+        <div class="bubble">${message}</div>
+      </div>`;
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
+
+    // Typing indicator
+    const typingId = "typing-" + Date.now();
+    chat.innerHTML += `
+      <div class="message bot typing" id="${typingId}">
+        <div class="avatar">🌷</div>
+        <div class="bubble">
+          <div class="typing-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+
+      // Remove typing indicator
+      document.getElementById(typingId)?.remove();
+
+      // Bot reply
+      chat.innerHTML += `
+        <div class="message bot">
+          <div class="avatar">🌷</div>
+          <div class="bubble">${data.reply}</div>
+        </div>`;
+      chat.scrollTop = chat.scrollHeight;
+
+    } catch (err) {
+      document.getElementById(typingId)?.remove();
+      chat.innerHTML += `
+        <div class="message bot">
+          <div class="avatar">🌷</div>
+          <div class="bubble">⚠️ Error: ${err.message}</div>
+        </div>`;
+      chat.scrollTop = chat.scrollHeight;
+    }
+  }
+</script>
+
+</body>
+</html>
