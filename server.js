@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import { CohereClient } from "cohere-ai";
 
 dotenv.config();
 
@@ -17,8 +16,6 @@ if (!API_KEY) {
   console.log("✅ API KEY LOADED");
 }
 
-const cohere = new CohereClient({ token: API_KEY });
-
 app.get("/", (req, res) => {
   res.send("ChatNova Server is running!");
 });
@@ -31,18 +28,34 @@ app.post("/api/chat", async (req, res) => {
       return res.json({ reply: "Please send a message." });
     }
 
-    const response = await cohere.chat({
-      model: "command-r-plus-08-2024",
-      message: userMessage
+    const response = await fetch("https://api.cohere.com/v1/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "command-r-plus-08-2024",
+        message: userMessage
+      })
     });
 
-    const reply = response.text || "No response from ChatNova";
+    const data = await response.json();
+
+    console.log("API RESPONSE:", JSON.stringify(data, null, 2));
+
+    if (data.message) {
+      console.error("❌ Cohere API Error:", data.message);
+      return res.json({ reply: `Error: ${data.message}` });
+    }
+
+    const reply = data.text || "No response from ChatNova";
 
     console.log("✅ Reply:", reply);
     res.json({ reply });
 
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    console.error("❌ Server Error:", error.message);
     res.json({ reply: `Error: ${error.message}` });
   }
 });
@@ -51,5 +64,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-
